@@ -2,7 +2,7 @@
 #
 # User: Yuma Hori
 # Date: 15/02/20
-# Desc: 
+# Desc: PDFを1ページごとに分解し、差分をPDFにまとめる
 
 gulp = require 'gulp'
 del = require 'del'
@@ -40,6 +40,9 @@ gulp.task 'splitPdfNew', ->
 	gulp.src ["#{dir.new}/*.pdf"], { read: false }
 	.pipe plugins.shell ["gm convert #{gm.density} #{dir.new}/<%= file.relative %> +adjoin #{dir.tempNew}/<%= file.relative %>#{gm.number}#{gm.format}"]
 
+# new,oldを両方分割する
+gulp.task 'split', ['splitPdfOld', 'splitPdfNew']
+
 # 分割されたJPEGを順番に比較し、結果を出力する
 gulp.task 'compare', ->
 
@@ -66,6 +69,7 @@ gulp.task 'compare', ->
 # クリーン
 gulp.task 'clean', (cb) ->
 	del [
+		"_*.pdf"
 		"./#{dir.tempNew}"
 		"./#{dir.tempOld}"
 		"./#{dir.tempOut}"
@@ -75,8 +79,13 @@ gulp.task 'clean', (cb) ->
 		.on 'end', ->
 			cb()
 
+# ソースを含めて削除する
+gulp.task 'cleanDeep', ['clean'], (cb) ->
+	del [
+		"#{dir.new}"
+		"#{dir.old}"
+	], cb()
 
-gulp.task 'split', ['splitPdfOld', 'splitPdfNew']
-
+# 実行
 gulp.task 'default', ->
 	run 'clean', 'split', 'compare'
