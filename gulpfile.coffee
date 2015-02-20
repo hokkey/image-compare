@@ -1,0 +1,82 @@
+# Created by phpStorm.
+#
+# User: Yuma Hori
+# Date: 15/02/20
+# Desc: 
+
+gulp = require 'gulp'
+del = require 'del'
+fs = require 'fs'
+run = require 'run-sequence'
+plugins = do require 'gulp-load-plugins'
+
+dir = {}
+dir.old = './_old'
+dir.new = './_new'
+dir.tempOld = '.temp_old'
+dir.tempNew = '.temp_new'
+dir.tempOut = '.temp_out'
+
+dir.diffOutput = './_diff.pdf'
+dir.newOutput = './_new.pdf'
+dir.oldOutput = './_old.pdf'
+
+gm = {}
+gm.density = '-density 150x150'
+gm.number = '%03d'
+gm.format = '.pdf'
+gm.compareStyle = 'xor'
+
+newImages = []
+oldImages = []
+
+
+# 入力・出力PDFをそれぞれJPEGに分割する
+gulp.task 'splitPdfOld', ->
+	gulp.src ["#{dir.old}/*.pdf"], { read: false }
+	.pipe plugins.shell ["gm convert #{gm.density} #{dir.old}/<%= file.relative %> +adjoin #{dir.tempOld}/<%= file.relative %>#{gm.number}#{gm.format}"]
+
+gulp.task 'splitPdfNew', ->
+	gulp.src ["#{dir.new}/*.pdf"], { read: false }
+	.pipe plugins.shell ["gm convert #{gm.density} #{dir.new}/<%= file.relative %> +adjoin #{dir.tempNew}/<%= file.relative %>#{gm.number}#{gm.format}"]
+
+# 分割されたJPEGを順番に比較し、結果を出力する
+gulp.task 'compare', ->
+
+	gulp.src '.', ->
+		fs.readdir "#{dir.tempNew}", (err, files) ->
+
+			commands = []
+			newImages = []
+			newImages = files
+
+			for path in newImages
+				commands.push "gm compare -highlight-style #{gm.compareStyle} -file #{dir.tempOut}/#{path} #{dir.tempOld}/#{path} #{dir.tempNew}/#{path}\n"
+
+			commands.push "gm convert #{dir.tempOut}/* #{dir.diffOutput}\n"
+			commands.push "gm convert #{dir.tempNew}/* #{dir.newOutput}\n"
+			commands.push "gm convert #{dir.tempOld}/* #{dir.oldOutput}\n"
+			commands.push "open #{dir.diffOutput}\n"
+
+			console.log commands
+
+			gulp.src '.'
+				.pipe plugins.shell(commands)
+
+# クリーン
+gulp.task 'clean', (cb) ->
+	del [
+		"./#{dir.tempNew}"
+		"./#{dir.tempOld}"
+		"./#{dir.tempOut}"
+	], ->
+		gulp.src '.'
+		.pipe plugins.shell ["mkdir #{dir.tempOld}\nmkdir #{dir.tempNew}\nmkdir #{dir.tempOut}"]
+		.on 'end', ->
+			cb()
+
+
+gulp.task 'split', ['splitPdfOld', 'splitPdfNew']
+
+gulp.task 'default', ->
+	run 'clean', 'split', 'compare'
