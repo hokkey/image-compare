@@ -34,11 +34,11 @@ oldImages = []
 # 入力・出力PDFをそれぞれJPEGに分割する
 gulp.task 'splitPdfOld', ->
 	gulp.src ["#{dir.old}/*.pdf"], { read: false }
-	.pipe plugins.shell ["gm convert #{gm.density} #{dir.old}/<%= file.relative %> +adjoin #{dir.tempOld}/<%= file.relative %>#{gm.number}#{gm.format}"]
+	.pipe shell ["gm convert #{gm.density} #{dir.old}/<%= file.relative %> +adjoin #{dir.tempOld}/<%= file.relative %>#{gm.number}#{gm.format}"]
 
 gulp.task 'splitPdfNew', ->
 	gulp.src ["#{dir.new}/*.pdf"], { read: false }
-	.pipe plugins.shell ["gm convert #{gm.density} #{dir.new}/<%= file.relative %> +adjoin #{dir.tempNew}/<%= file.relative %>#{gm.number}#{gm.format}"]
+	.pipe shell ["gm convert #{gm.density} #{dir.new}/<%= file.relative %> +adjoin #{dir.tempNew}/<%= file.relative %>#{gm.number}#{gm.format}"]
 
 # new,oldを両方分割する
 gulp.task 'split', ['splitPdfOld', 'splitPdfNew']
@@ -64,7 +64,7 @@ gulp.task 'compare', ->
 			console.log commands
 
 			gulp.src '.'
-				.pipe plugins.shell(commands)
+				.pipe shell(commands)
 
 # クリーン
 gulp.task 'clean', (cb) ->
@@ -75,7 +75,7 @@ gulp.task 'clean', (cb) ->
 		"./#{dir.tempOut}"
 	], ->
 		gulp.src '.'
-		.pipe plugins.shell ["mkdir #{dir.tempOld}\nmkdir #{dir.tempNew}\nmkdir #{dir.tempOut}"]
+		.pipe shell ["mkdir #{dir.tempOld}\nmkdir #{dir.tempNew}\nmkdir #{dir.tempOut}"]
 		.on 'end', ->
 			cb()
 
