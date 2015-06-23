@@ -32,3 +32,5 @@ _new/
 _old/
 .temp*/
 _*
+
+.idea/*
