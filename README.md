@@ -1,4 +1,4 @@
-yhk-image-compare
+image-compare
 ===============
 
 GraphicsMagickによるPDFの比較ツール
