@@ -8,7 +8,7 @@ gulp = require 'gulp'
 del = require 'del'
 fs = require 'fs'
 run = require 'run-sequence'
-plugins = do require 'gulp-load-plugins'
+shell = require 'gulp-shell'
 
 dir = {}
 dir.old = './_old'
@@ -22,10 +22,10 @@ dir.newOutput = './_new.pdf'
 dir.oldOutput = './_old.pdf'
 
 gm = {}
-gm.density = '-density 150x150'
+gm.density = '-density 200x200'
 gm.number = '%03d'
 gm.format = '.pdf'
-gm.compareStyle = 'xor'
+gm.compareStyle = 'assign'
 
 newImages = []
 oldImages = []
@@ -43,10 +43,8 @@ gulp.task 'splitPdfNew', ->
 # new,oldを両方分割する
 gulp.task 'split', ['splitPdfOld', 'splitPdfNew']
 
-# 分割されたJPEGを順番に比較し、結果を出力する
-gulp.task 'compare', ->
-
-	gulp.src '.', ->
+gulp.task 'metric', ->
+  gulp.src '.', ->
 		fs.readdir "#{dir.tempNew}", (err, files) ->
 
 			commands = []
@@ -54,17 +52,36 @@ gulp.task 'compare', ->
 			newImages = files
 
 			for path in newImages
-				commands.push "gm compare -highlight-style #{gm.compareStyle} -file #{dir.tempOut}/#{path} #{dir.tempOld}/#{path} #{dir.tempNew}/#{path}\n"
-
-			commands.push "gm convert #{dir.tempOut}/* #{dir.diffOutput}\n"
-			commands.push "gm convert #{dir.tempNew}/* #{dir.newOutput}\n"
-			commands.push "gm convert #{dir.tempOld}/* #{dir.oldOutput}\n"
-			commands.push "open #{dir.diffOutput}\n"
-
+				commands.push "echo 'Next #{path}:'\ngm compare -metric MAE #{dir.tempOld}/#{path} #{dir.tempNew}/#{path}\n"
 			console.log commands
 
 			gulp.src '.'
 				.pipe shell(commands)
+
+
+# 分割されたJPEGを順番に比較し、結果を出力する
+gulp.task 'compare', ->
+
+	gulp.src '.', ->
+		fs.readdir "#{dir.tempNew}", (err, files1) ->
+
+			fs.readdir "#{dir.tempOld}", (err, files2) -> 
+				commands = []
+				
+				console.log files1
+				console.log files2
+				
+				try
+				  if newImages.length != oldImages.length
+	  			  throw new Error('Not Enough Length!!')
+
+				for path, i in files1
+					commands.push "echo 'Next #{path}:'\ngm compare -metric MAE #{dir.tempOld}/#{files2[i]} #{dir.tempNew}/#{path}\ngm compare -highlight-style #{gm.compareStyle} -file #{dir.tempOut}/#{files1[i]} #{dir.tempOld}/#{files2[i]} #{dir.tempNew}/#{files1[i]}\n"
+
+				commands.push "gm convert #{dir.tempOut}/* #{dir.diffOutput}\n"
+				commands.push "open #{dir.diffOutput}\n"
+				gulp.src '.'
+					.pipe shell(commands)
 
 # クリーン
 gulp.task 'clean', (cb) ->
@@ -84,7 +101,11 @@ gulp.task 'cleanDeep', ['clean'], (cb) ->
 	del [
 		"#{dir.new}"
 		"#{dir.old}"
-	], cb()
+	],  ->
+		gulp.src '.'
+		.pipe shell ["mkdir #{dir.old}\nmkdir #{dir.new}\n"]
+		.on 'end', ->
+			cb()
 
 # 実行
 gulp.task 'default', ->
