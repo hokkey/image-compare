@@ -38,7 +38,4 @@ _new/
 _old/
 .temp*/
 _*
-
-### JetBrain
-
-.idea
+*.command
