@@ -33,9 +33,4 @@ node_modules
 *.iml
 
 ### Others
-
-_new/
-_old/
-.temp*/
-_*
-*.command
+*.pdf
