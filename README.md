@@ -15,13 +15,13 @@ npm install
 
 # 使い方
 
-<pre>
+```
 image-compare/
 ├── _old/
 ├── _new/
 ├── package.json
 └── gulpfile.coffee
-</pre>
+```
 
 1. `_old/` ディレクトリを作成し、そこへ比較元のPDFデータを入れる
 2. `_new/` ディレクトリを作成し、そこへ比較先のPDFデータを入れる
