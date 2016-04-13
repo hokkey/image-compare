@@ -92,7 +92,7 @@ gulp.task 'clean', (cb) ->
 		"./#{dir.tempOut}"
 	], ->
 		gulp.src '.'
-		.pipe shell ["mkdir #{dir.tempOld}\nmkdir #{dir.tempNew}\nmkdir #{dir.tempOut}"]
+		.pipe shell ["mkdir -p #{dir.tempOld}\nmkdir -p #{dir.tempNew}\nmkdir -p #{dir.tempOut}"]
 		.on 'end', ->
 			cb()
 
