@@ -5,10 +5,12 @@ GraphicsMagickによるPDFの比較ツール
 
 # インストール
 
+* 事前にNode.jsが必要
+
 ```
 git clone (このリポジトリパスのパス)
 brew update && brew upgrade
-brew install node graphicsmagick gs
+brew install graphicsmagick ghostscript
 cd (cloneしたワーキングコピーのパス)
 npm install
 ```
@@ -39,6 +41,6 @@ image-compare/
 # 注意点
 
 不可視フォルダ内のゴミは、gulpを行う度に削除される。
-削除せずに比較だけをやり直したい場合は `gulp compare` コマンドを実行すること
+削除せずに比較だけをやり直したい場合は `gulp compare` コマンドを実行する
 
 不可視フォルダ内のゴミ削除は `gulp clean` コマンドでも可能
